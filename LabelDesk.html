@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>LabelDeck</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f7;
+      overflow-x: hidden;
+    }
+
+    .content-wrapper {
+      position: relative;
+      transition: all 0.3s ease-in-out;
+      margin-left: 60px;
+      width: calc(100% - 60px);
+      box-sizing: border-box;
+    }
+
+    .content-wrapper.expanded {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 0;
+      transition: all 0.3s ease-out;
+      position: relative;
+      z-index: 100;
+      min-height: 100px;
+    }
+
+    header.collapsed {
+      max-height: 0;
+      padding: 0;
+      opacity: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .header-title {
+      font-size: 64px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .header-subtitle {
+      font-size: 20px;
+      color: #888;
+      text-align: center;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+      transition: all 0.3s ease-in-out;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 16px 0;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .section-header:hover {
+      background: #e8f0ff;
+      padding: 16px 20px;
+      transform: scale(1.02);
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.1);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .section-toggle {
+      font-size: 20px;
+      transition: transform 0.3s;
+    }
+
+    .section-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      max-height: 2000px;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out;
+    }
+
+    .section-content.collapsed {
+      max-height: 0;
+    }
+
+    .save-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .save-section.visible {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      width: 900px;
+      max-width: 90vw;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, .08);
+      margin-top: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input,
+    select,
+    button {
+      padding: 8px;
+      margin: 4px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #0071e3;
+      color: white;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #e5e5ea;
+      color: black;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #progressBar {
+      width: 100%;
+      max-width: 900px;
+      height: 8px;
+      background: #e5e5ea;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    #progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, #0071e3, #00a8ff);
+      border-radius: 4px;
+      transition: width 0.3s ease-out;
+    }
+
+    #progressText {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #labelCard {
+      border: 2px solid rgba(0, 113, 227, 0.3);
+      border-radius: 16px;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 40px;
+    }
+
+    #labelCard::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 113, 227, 0.03) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.5;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    #labelCard img {
+      max-height: 320px;
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .locked {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .category-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .category-row button {
+      background: #ff3b30;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 60px;
+      height: 100vh;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      z-index: 500;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .sidebar.visible {
+      width: 280px;
+    }
+
+    .sidebar-header {
+      display: none;
+    }
+
+    .sidebar-icon {
+      padding: 20px 10px;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: right;
+      box-sizing: border-box;
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.visible .sidebar-icon {
+      width: 60px;
+    }
+
+    .sidebar-icon:hover {
+      color: #0071e3;
+      transform: scale(1.1);
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar.visible .sidebar-menu {
+      opacity: 1;
+    }
+
+    .sidebar-menu-item {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-menu-item:hover {
+      background: #333;
+    }
+
+    .sidebar-language-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .sidebar-language-label {
+      color: #888;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .sidebar-language {
+      flex: 1;
+      padding: 8px;
+      background: #333;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 6px;
+    }
+
+    #listPanel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    #listPanel.visible {
+      display: block;
+    }
+
+    .list-item-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .list-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: white;
+    }
+
+    .list-item:hover {
+      background: #333;
+    }
+
+    .list-item.active {
+      background: #404040;
+      border-left: 3px solid #0071e3;
+    }
+
+    .list-item-index {
+      color: #888;
+    }
+
+    .list-item span {
+      margin-left: 8px;
+      color: #666;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 12px;
+      padding: 12px;
+      background: #f8f8f8;
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    .legend-key {
+      background: #0071e3;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-family: monospace;
+      min-width: 28px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .row-selection {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8f8ff;
+      border-radius: 8px;
+      border: 1px solid #0071e3;
+    }
+
+    .row-option {
+      margin: 8px 0;
+    }
+
+    .row-option label {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .toggle-hint {
+      position: fixed;
+      top: 70px;
+      left: 16px;
+      background: #1a1a1a;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 999;
+      animation: fadeIn 0.3s ease-out;
+      max-width: 200px;
+      text-align: center;
+    }
+
+    .toggle-hint::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 24px;
+      border-width: 0 8px 8px;
+      border-style: solid;
+      border-color: transparent transparent #1a1a1a transparent;
+    }
+
+    #exportModal,
+    #columnModal,
+    #privacyModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    #exportModal:not(.hidden),
+    #columnModal:not(.hidden),
+    #privacyModal:not(.hidden) {
+      display: flex;
+    }
+
+    #exportModal.hidden,
+    #columnModal.hidden,
+    #privacyModal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .privacy-content {
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .privacy-content p {
+      margin-bottom: 12px;
+    }
+
+    .privacy-content strong {
+      color: #0071e3;
+    }
+
+    .export-options,
+    .column-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .export-options label,
+    .column-options label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .export-options label:hover,
+    .column-options label:hover {
+      background: #f8f9ff;
+      border-color: #0071e3;
+    }
+
+    .export-options label input[type="radio"] {
+      margin: 0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+    }
+
+    .upload-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .upload-card {
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .upload-card:hover {
+      border-color: #0071e3;
+      background: #f8f9ff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+    }
+
+    .upload-card.selected {
+      border-color: #0071e3;
+      background: #e8f0ff;
+    }
+
+    .upload-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .upload-description {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-icon" onclick="toggleSidebar()">☰</div>
+      <div class="sidebar-menu">
+        <div class="sidebar-menu-item" onclick="showPrivacyModal()" data-i18n="privacyTerms">Privacy Terms</div>
+        <div class="sidebar-language-row">
+          <div class="sidebar-language-label" data-i18n="languageLabel">Language</div>
+          <select id="languageSelect" class="sidebar-language" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+      </div>
+      <div id="listPanel"></div>
+    </div>
+
+    <div class="content-wrapper" id="contentWrapper">
+      <header id="mainHeader">
+        <div class="header-title" data-i18n="title">LabelDeck</div>
+        <div class="header-subtitle" data-i18n="headerSubtitle">Click left icon to change language or view history</div>
+      </header>
+
+      <main id="mainContent">
+        <div class="card">
+
+          <!-- Upload Data Section -->
+          <div class="section-header" onclick="toggleSection('uploadData')">
+            <div class="section-title" data-i18n="uploadData">1. Upload Data</div>
+            <div class="section-toggle collapsed" id="uploadDataToggle">▼</div>
+          </div>
+
+          <div class="section-content" id="uploadDataContent">
+            <div class="upload-container">
+              <div class="upload-card" id="uploadFilesCard" onclick="selectUploadType('files')">
+                <span class="upload-icon">📁</span>
+                <div class="upload-text" data-i18n="uploadFiles">upload files</div>
+                <div class="upload-description" data-i18n="uploadFilesDesc">CSV or Excel files</div>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display:none">
+              </div>
+
+              <div class="upload-card" id="uploadFolderCard" onclick="selectUploadType('folder')">
+                <span class="upload-icon">🖼️</span>
+                <div class="upload-text" data-i18n="uploadImageFolder">upload image folder</div>
+                <div class="upload-description" data-i18n="uploadImageFolderDesc">Folder with images</div>
+                <input type="file" id="imageFolder" webkitdirectory multiple accept="image/*" style="display:none">
+              </div>
+            </div>
+
+            <div id="columnControls" class="hidden">
+              <div style="margin-top: 20px;">
+                <label data-i18n="selectColumn" style="font-weight: 600;">Select Column:</label>
+                <select id="columnSelect" style="width: 100%; margin-top: 8px;"></select>
+              </div>
+
+              <div class="row-selection">
+                <label data-i18n="selectRows" style="font-weight: 600;">Select Rows:</label>
+
+                <div class="row-option">
+                  <label>
+                    <input type="radio" name="rowSelection" value="count" checked onchange="updateRowSelection()">
+                    <span data-i18n="chooseLines">Choose lines:</span>
+                  </label>
+                  <div class="row-input" style="margin-top: 8px;">
+                    <input type="number" id="rowStart" value="1" style="width:100px">
+                    <span>to</span>
+                    <input type="number" id="rowEnd" value="100" style="width:100px">
+                  </div>
+                </div>
+
+                <div class="row-option">
+                  <label>
+                    <input type="radio" name="rowSelection" value="percent" onchange="updateRowSelection()">
+                    <span data-i18n="choosePercent">Choose percentage:</span>
+                  </label>
+                  <div class="row-input hidden" style="margin-top: 8px;">
+                    <input type="number" id="rowPercentStart" value="0" min="0" max="100" style="width:100px">
+                    <span>% to </span>
+                    <input type="number" id="rowPercentEnd" value="100" min="0" max="100" style="width:100px">
+                    <span>%</span>
+                  </div>
+                </div>
+
+                <div class="row-option">
+                  <label>
+                    <input type="radio" name="rowSelection" value="all" onchange="updateRowSelection()">
+                    <span data-i18n="chooseAll">All rows:</span>
+                  </label>
+                  <div class="row-input hidden" style="margin-top: 8px;">
+                    <span id="totalRowsCount">0</span> <span data-i18n="totalRows">total rows</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="uploadSaveSection" class="save-section">
+              <button onclick="saveUploadData()" data-i18n="saveData">Save Data</button>
+            </div>
+          </div>
+
+          <!-- Categories Section -->
+          <div class="section-header" onclick="toggleSection('categories')" style="display: none;" id="categoriesHeader">
+            <div class="section-title" data-i18n="categories">2. Categories</div>
+            <div class="section-toggle collapsed" id="categoriesToggle">▼</div>
+          </div>
+
+          <div class="section-content collapsed" id="categoriesContent">
+            <div id="categoryContainer"></div>
+            <button class="secondary" onclick="addCategory()" data-i18n="addCategory">Add Category</button><br>
+            <button onclick="saveCategories()" data-i18n="saveLock">Save & Lock</button>
+            <button class="secondary" onclick="unlockCategories()" data-i18n="unlock">Unlock</button>
+          </div>
+
+          <!-- Labeling Section -->
+          <div id="labeling" class="hidden">
+            <h2 data-i18n="labeling">3. Labeling</h2>
+            <div id="progressText"></div>
+            <div id="progressBar">
+              <div id="progressFill"></div>
+            </div>
+            <div id="labelCard"></div>
+            <div id="legendContainer" class="hidden"></div>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+              <button onclick="prev()" data-i18n="back">Back</button>
+              <button onclick="next()" data-i18n="forward">Forward</button>
+              <button class="secondary" onclick="showExportOptions()" data-i18n="export">Export</button>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <div id="privacyModal" class="hidden">
+      <div class="modal-content">
+        <h3 data-i18n="privacyTerms">Privacy Terms</h3>
+        <div class="privacy-content" data-i18n="privacyContent"></div>
+        <div class="modal-buttons">
+          <button onclick="hidePrivacyModal()" data-i18n="close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="columnModal" class="hidden">
+      <div class="modal-content">
+        <h3 data-i18n="selectColumn">Select Column</h3>
+        <div class="column-options" id="columnModalOptions"></div>
+        <div class="modal-buttons">
+          <button onclick="confirmColumn()" data-i18n="confirm">Confirm</button>
+          <button class="secondary" onclick="hideColumnModal()" data-i18n="cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="exportModal" class="hidden">
+      <div class="modal-content">
+        <h3 data-i18n="exportFormat">Export Format:</h3>
+        <div class="export-options">
+          <label>
+            <input type="radio" name="exportFormat" value="excel" checked onchange="toggleCsvEncoding()">
+            <span data-i18n="excel">Excel (.xlsx)</span>
+          </label>
+          <label>
+            <input type="radio" name="exportFormat" value="csv" onchange="toggleCsvEncoding()">
+            <span data-i18n="csv">CSV</span>
+          </label>
+        </div>
+
+        <div id="csvEncodingOptions" class="hidden">
+          <h3 data-i18n="csvEncoding">CSV Encoding:</h3>
+          <div class="export-options">
+            <label>
+              <input type="radio" name="csvEncoding" value="utf8" checked>
+              <span data-i18n="utf8">UTF-8</span>
+            </label>
+            <label>
+              <input type="radio" name="csvEncoding" value="gbk">
+              <span data-i18n="gbk">GBK</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button onclick="performExport()" data-i18n="export">Export</button>
+          <button class="secondary" onclick="hideExportOptions()" data-i18n="cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const translations = {
+        en: {
+          title: "LabelDeck",
+          uploadData: "1. Upload Data",
+          headerSubtitle: "Click left icon to change language.<br><br>Click on the left list to jump to a specific question.<br><br>Closing the page will cause progress loss.<br><br>Please export results in time.",
+          privacyTerms: "Privacy Terms",
+          privacyContent: "<p><strong>LabelDeck is a serverless tool designed for data labeling.</strong></p><p>All operations are performed locally in your browser. No data is ever uploaded to any server, ensuring complete privacy and security.</p><p>Your files and labels remain on your device at all times. This tool does not store, transmit, or access any of your data externally.</p>",
+          close: "Close",
+          viewHistory: "View History",
+          languageLabel: "Language",
+          uploadFiles: "upload files",
+          uploadFilesDesc: "CSV or Excel files",
+          uploadImageFolder: "upload image folder",
+          uploadImageFolderDesc: "Folder with images",
+          toggleHint: "Click to view/hide list",
+          selectColumn: "Select Column",
+          selectRows: "Select Rows",
+          chooseLines: "Choose lines:",
+          choosePercent: "Choose percentage:",
+          chooseAll: "All rows:",
+          totalRows: "total rows",
+          confirm: "Confirm",
+          saveData: "Save Data",
+          categories: "2. Categories",
+          addCategory: "Add Category",
+          saveLock: "Save & Lock",
+          unlock: "Unlock",
+          labeling: "3. Labeling",
+          back: "Back",
+          forward: "Forward",
+          export: "Export",
+          exportFormat: "Export Format:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "CSV Encoding:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "Cancel"
+        },
+        zh: {
+          title: "LabelDeck",
+          uploadData: "1. 上传数据",
+          headerSubtitle: "点击左侧图标更改语言，或点击左侧列表跳转到指定题目。<br><br>关闭页面将导致进度丢失。<br><br>请及时导出标注结果。",
+          privacyTerms: "隐私条款",
+          privacyContent: "<p><strong>LabelDeck 是一个用于数据标注的无服务器工具。</strong></p><p>所有操作均在您的浏览器本地执行。不会上传任何数据到服务器，确保完全的隐私和安全。</p><p>您的文件和标注始终保存在您的设备上。此工具不会存储、传输或从外部访问您的任何数据。</p>",
+          close: "关闭",
+          viewHistory: "查看历史",
+          languageLabel: "语言",
+          uploadFiles: "上传文件",
+          uploadFilesDesc: "CSV或Excel文件",
+          uploadImageFolder: "上传图片文件夹",
+          uploadImageFolderDesc: "包含图片的文件夹",
+          toggleHint: "点击查看/隐藏列表",
+          selectColumn: "选择列",
+          selectRows: "选择行",
+          chooseLines: "选择行:",
+          choosePercent: "选择百分比:",
+          chooseAll: "全部行:",
+          totalRows: "总行数",
+          confirm: "确认",
+          saveData: "保存数据",
+          categories: "2. 类别",
+          addCategory: "添加类别",
+          saveLock: "保存并锁定",
+          unlock: "解锁",
+          labeling: "3. 标注",
+          back: "上一个",
+          forward: "下一个",
+          export: "导出",
+          exportFormat: "导出格式:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "CSV编码:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "取消"
+        },
+        ja: {
+          title: "LabelDeck",
+          uploadData: "1. データをアップロード",
+          headerSubtitle: "左のアイコンをクリックして言語を変更。<br><br>左のリストをクリックして特定の質問にジャンプ。<br><br>ページを閉じると進行状況が失われますので、結果を適時エクスポートしてください。",
+          privacyTerms: "プライバシーポリシー",
+          privacyContent: "<p><strong>LabelDeckは、データラベリング用のサーバーレスツールです。</strong></p><p>すべての操作はブラウザでローカルに実行されます。</p><p>データがサーバーにアップロードされることはなく、完全なプライバシーとセキュリティが保証されます。</p><p>ファイルとラベルは常にデバイス上に残ります。このツールは、データの保存、送信、または外部からのアクセスを行いません。</p>",
+          viewHistory: "履歴を表示",
+          languageLabel: "言語",
+          uploadFiles: "ファイルをアップロード",
+          uploadFilesDesc: "CSVまたはExcelファイル",
+          uploadImageFolder: "画像フォルダをアップロード",
+          uploadImageFolderDesc: "画像が含まれるフォルダ",
+          toggleHint: "クリックしてリストを表示/非表示",
+          selectColumn: "列を選択",
+          selectRows: "行を選択",
+          chooseLines: "行を選択:",
+          choosePercent: "パーセンテージを選択:",
+          chooseAll: "すべての行:",
+          totalRows: "総行数",
+          confirm: "確認",
+          saveData: "データを保存",
+          categories: "2. カテゴリー",
+          addCategory: "カテゴリーを追加",
+          saveLock: "保存してロック",
+          unlock: "ロック解除",
+          labeling: "3. ラベリング",
+          back: "戻る",
+          forward: "進む",
+          export: "エクスポート",
+          exportFormat: "エクスポート形式:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "CSVエンコーディング:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "キャンセル"
+        },
+        ko: {
+          title: "LabelDeck",
+          uploadData: "1. 데이터 업로드",
+          headerSubtitle: "왼쪽 아이콘을 클릭하여 언어 변경。<br><br>왼쪽 목록을 클릭하여 특정 질문으로 이동합니다。<br><br>페이지를 닫으면 진행 상황이 손실되므로 결과를 적시에 내보내십시오.",
+          privacyTerms: "개인정보 처리방침",
+          privacyContent: "<p><strong>LabelDeck은 데이터 라벨링을 위한 서버리스 도구입니다.</strong></p><p>모든 작업은 브라우저에서 로컬로 수행됩니다.</p><p>데이터는 서버에 업로드되지 않으며, 완전한 개인정보 보호가 보장됩니다.</p><p>파일과 라벨은 항상 장치에 남습니다. 이 도구는 데이터를 저장, 전송하거나 외부에서 액세스하지 않습니다.</p>",
+          viewHistory: "기록 보기",
+          languageLabel: "언어",
+          uploadFiles: "파일 업로드",
+          uploadFilesDesc: "CSV 또는 Excel 파일",
+          uploadImageFolder: "이미지 폴더 업로드",
+          uploadImageFolderDesc: "이미지가 포함된 폴더",
+          toggleHint: "클릭하여 목록 표시/숨기기",
+          selectColumn: "열 선택",
+          selectRows: "행 선택",
+          chooseLines: "행 선택:",
+          choosePercent: "백분율 선택:",
+          chooseAll: "모든 행:",
+          totalRows: "총 행",
+          confirm: "확인",
+          saveData: "데이터 저장",
+          categories: "2. 카테고리",
+          addCategory: "카테고리 추가",
+          saveLock: "저장 및 잠금",
+          unlock: "잠금 해제",
+          labeling: "3. 라벨링",
+          back: "뒤로",
+          forward: "앞으로",
+          export: "내보내기",
+          exportFormat: "내보내기 형식:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "CSV 인코딩:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "취소"
+        },
+        es: {
+          title: "LabelDeck",
+          uploadData: "1. Subir Datos",
+          headerSubtitle: "Haga clic en el icono izquierdo para cambiar idioma.<br><br>Haga clic en la lista izquierda para saltar a una pregunta específica.<br><br>Cerrar la página provocará la pérdida del progreso.<br><br>Por favor exporte los resultados a tiempo.",
+          privacyTerms: "Términos de Privacidad",
+          privacyContent: "<p><strong>LabelDeck es una herramienta sin servidor diseñada para el etiquetado de datos.</strong></p><p>Todas las operaciones se realizan localmente en su navegador.</p><p>Ningún dato se sube a ningún servidor, garantizando una privacidad y seguridad completas.</p><p>Sus archivos y etiquetas permanecen en su dispositivo en todo momento. Esta herramienta no almacena, transmite ni accede a sus datos externamente.</p>",
+          viewHistory: "Ver Historial",
+          languageLabel: "Idioma",
+          uploadFiles: "subir archivos",
+          uploadFilesDesc: "Archivos CSV o Excel",
+          uploadImageFolder: "subir carpeta de imágenes",
+          uploadImageFolderDesc: "Carpeta con imágenes",
+          toggleHint: "Clic para ver/ocultar lista",
+          selectColumn: "Seleccionar Columna",
+          selectRows: "Seleccionar Filas",
+          chooseLines: "Elegir líneas:",
+          choosePercent: "Elegir porcentaje:",
+          chooseAll: "Todas las filas:",
+          totalRows: "filas totales",
+          confirm: "Confirmar",
+          saveData: "Guardar Datos",
+          categories: "2. Categorías",
+          addCategory: "Añadir Categoría",
+          saveLock: "Guardar y Bloquear",
+          unlock: "Desbloquear",
+          labeling: "3. Etiquetado",
+          back: "Atrás",
+          forward: "Adelante",
+          export: "Exportar",
+          exportFormat: "Formato de exportación:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "Codificación CSV:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "Cancelar"
+        },
+        fr: {
+          title: "LabelDeck",
+          uploadData: "1. Télécharger des données",
+          headerSubtitle: "Cliquez sur l'icône de gauche pour changer la langue.<br><br>Cliquez sur la liste de gauche pour aller à une question spécifique.<br><br>Fermer la page entraînera la perte de la progression.<br><br>Veuillez exporter les résultats à temps.",
+          privacyTerms: "Politique de Confidentialité",
+          privacyContent: "<p><strong>LabelDeck est un outil sans serveur conçu pour l'étiquetage de données.</strong></p><p>Toutes les opérations sont effectuées localement dans votre navigateur.</p><p>Aucune donnée n'est téléchargée vers un serveur, garantissant une confidentialité et une sécurité complètes.</p><p>Vos fichiers et étiquettes restent sur votre appareil à tout moment. Cet outil ne stocke, ne transmet ni n'accède à vos données de l'extérieur.</p>",
+          close: "Fermer",
+          viewHistory: "Voir l'historique",
+          languageLabel: "Langue",
+          uploadFiles: "télécharger des fichiers",
+          uploadFilesDesc: "Fichiers CSV ou Excel",
+          uploadImageFolder: "télécharger le dossier d'images",
+          uploadImageFolderDesc: "Dossier avec des images",
+          toggleHint: "Clic pour afficher/masquer la liste",
+          selectColumn: "Sélectionner la colonne",
+          selectRows: "Sélectionner les lignes",
+          chooseLines: "Choisir des lignes:",
+          choosePercent: "Choisir le pourcentage:",
+          chooseAll: "Toutes les lignes:",
+          totalRows: "lignes au total",
+          confirm: "Confirmer",
+          saveData: "Enregistrer les données",
+          categories: "2. Catégories",
+          addCategory: "Ajouter une catégorie",
+          saveLock: "Enregistrer et verrouiller",
+          unlock: "Déverrouiller",
+          labeling: "3. Étiquetage",
+          back: "Précédent",
+          forward: "Suivant",
+          export: "Exporter",
+          exportFormat: "Format d'exportation:",
+          excel: "Excel (.xlsx)",
+          csv: "CSV",
+          csvEncoding: "Encodage CSV:",
+          utf8: "UTF-8",
+          gbk: "GBK",
+          cancel: "Annuler"
+        }
+      };
+
+      let rawRows = [], data = [], labels = [], categories = {}, locked = false;
+      let index = 0, isImage = false;
+      let listVisible = false;
+      let currentUploadType = null;
+      let hintVisible = false;
+      let currentRowOption = 'count';
+      let sections = {
+        uploadData: { expanded: true },
+        categories: { expanded: true }
+      };
+
+      // Auto-detect browser language and set default
+      const supportedLanguages = ['en', 'zh', 'ja', 'ko', 'es', 'fr'];
+      const userLang = navigator.language.split('-')[0];
+      const defaultLang = supportedLanguages.includes(userLang) ? userLang : 'en';
+
+      function changeLanguage() {
+        const lang = document.getElementById("languageSelect").value;
+        const t = translations[lang];
+
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          const key = el.getAttribute("data-i18n");
+          if (t[key]) {
+            // Use innerHTML for headerSubtitle and privacyContent to support HTML
+            if (key === 'headerSubtitle' || key === 'privacyContent') {
+              el.innerHTML = t[key];
+            } else {
+              el.textContent = t[key];
+            }
+          }
+        });
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const main = document.getElementById("mainContent");
+        const header = document.getElementById("mainHeader");
+        const wrapper = document.getElementById("contentWrapper");
+        listVisible = !listVisible;
+        if (listVisible) {
+          sidebar.classList.add("visible");
+          main.classList.add('expanded');
+          header.classList.add('expanded');
+          wrapper.classList.add('expanded');
+        } else {
+          sidebar.classList.remove("visible");
+          main.classList.remove('expanded');
+          header.classList.remove('expanded');
+          wrapper.classList.remove('expanded');
+        }
+      }
+
+      function toggleSection(sectionName) {
+        const section = sections[sectionName];
+        section.expanded = !section.expanded;
+
+        const content = document.getElementById(sectionName + 'Content');
+        const toggle = document.getElementById(sectionName + 'Toggle');
+
+        if (section.expanded) {
+          content.classList.remove('collapsed');
+          toggle.classList.remove('collapsed');
+        } else {
+          content.classList.add('collapsed');
+          toggle.classList.add('collapsed');
+        }
+      }
+
+      function selectUploadType(type) {
+        const filesCard = document.getElementById('uploadFilesCard');
+        const folderCard = document.getElementById('uploadFolderCard');
+        const fileInput = document.getElementById('fileInput');
+        const imageFolder = document.getElementById('imageFolder');
+
+        if (type === 'files') {
+          filesCard.classList.add('selected');
+          folderCard.classList.remove('selected');
+          folderCard.classList.add('disabled');
+          fileInput.click();
+        } else if (type === 'folder') {
+          folderCard.classList.add('selected');
+          filesCard.classList.remove('selected');
+          filesCard.classList.add('disabled');
+          imageFolder.click();
+        }
+
+        currentUploadType = type;
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // Set default language based on browser
+        document.getElementById("languageSelect").value = defaultLang;
+        changeLanguage();
+
+        // Initially collapse Categories section
+        toggleSection('categories');
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+          const sidebar = document.getElementById('sidebar');
+          const sidebarIcon = document.querySelector('.sidebar-icon');
+          if (listVisible && !sidebar.contains(e.target) && !sidebarIcon.contains(e.target)) {
+            toggleSidebar();
+          }
+        });
+      });
+
+      function showLegend() {
+        const container = document.getElementById("legendContainer");
+        container.innerHTML = '<div class="legend"></div>';
+        const legend = container.querySelector('.legend');
+
+        Object.entries(categories).forEach(([key, category]) => {
+          const item = document.createElement('div');
+          item.className = 'legend-item';
+          let displayKey = key;
+          if (key === 'ArrowLeft') displayKey = '←';
+          else if (key === 'ArrowRight') displayKey = '→';
+          else if (key === 'ArrowUp') displayKey = '↑';
+          else if (key === 'ArrowDown') displayKey = '↓';
+
+          item.innerHTML = '<span class="legend-key">' + displayKey + '</span><span>' + category + '</span>';
+          legend.appendChild(item);
+        });
+
+        container.classList.remove('hidden');
+      }
+
+      function addCategory(name = "", key = "") {
+        if (locked) return;
+        const row = document.createElement("div");
+        row.className = "category-row";
+        row.innerHTML = '<input placeholder="Category" value="' + name + '"><input placeholder="Key" value="' + key + '" onkeydown="captureKey(event,this)"><button onclick="this.parentElement.remove()">✕</button>';
+        document.getElementById("categoryContainer").appendChild(row);
+      }
+
+      function captureKey(e, input) {
+        e.preventDefault();
+        input.value = e.key;
+      }
+
+      function saveCategories() {
+        categories = {};
+        document.querySelectorAll(".category-row").forEach(r => {
+          const c = r.children[0].value;
+          const k = r.children[1].value;
+          if (c && k) categories[k] = c;
+        });
+        if (!Object.keys(categories).length) { alert("Add categories"); return; }
+        locked = true;
+        document.getElementById("labeling").classList.remove("hidden");
+        showLegend();
+        updateLockButton();
+        // Collapse categories section after saving
+        toggleSection('categories');
+        // Collapse header when entering labeling
+        document.getElementById('mainHeader').classList.add('collapsed');
+      }
+
+      function unlockCategories() {
+        locked = false;
+        updateLockButton();
+        // Expand categories section when unlocking
+        if (!sections.categories.expanded) {
+          toggleSection('categories');
+        }
+      }
+
+      function updateLockButton() {
+        const lockBtn = document.querySelector('button[onclick="saveCategories()"]');
+        const unlockBtn = document.querySelector('button[onclick="unlockCategories()"]');
+        const catContainer = document.getElementById("categoryContainer");
+        const addBtn = document.querySelector('button[onclick="addCategory()"]');
+
+        if (locked) {
+          lockBtn.classList.add('locked');
+          unlockBtn.classList.remove('locked');
+          catContainer.classList.add('locked');
+          addBtn.classList.add('locked');
+        } else {
+          lockBtn.classList.remove('locked');
+          unlockBtn.classList.remove('locked');
+          catContainer.classList.remove('locked');
+          addBtn.classList.remove('locked');
+        }
+      }
+
+      document.addEventListener("keydown", e => {
+        if (categories[e.key]) {
+          labels[index] = categories[e.key];
+          renderList();
+          next();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === "z") prev();
+      });
+
+      function updateRowSelection() {
+        const selected = document.querySelector('input[name="rowSelection"]:checked').value;
+        currentRowOption = selected;
+
+        document.querySelectorAll('.row-option .row-input').forEach(input => {
+          input.classList.add('hidden');
+        });
+
+        if (selected === 'count') {
+          document.querySelector('#rowStart').parentElement.classList.remove('hidden');
+        } else if (selected === 'percent') {
+          document.querySelector('#rowPercentStart').parentElement.classList.remove('hidden');
+        } else if (selected === 'all') {
+          document.querySelector('#totalRowsCount').parentElement.classList.remove('hidden');
+        }
+      }
+
+      function updateProgress() {
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+
+        if (data.length === 0) {
+          progressText.textContent = '';
+          progressFill.style.width = '0%';
+          return;
+        }
+
+        const current = index + 1;
+        const total = data.length;
+        const percentage = ((current / total) * 100).toFixed(1);
+
+        progressText.textContent = current + ' / ' + total + ' (' + percentage + '%)';
+        progressFill.style.width = percentage + '%';
+      }
+
+      function renderCard() {
+        const c = document.getElementById("labelCard");
+        c.innerHTML = "";
+        if (isImage) {
+          const img = document.createElement("img");
+          img.src = data[index];
+          c.appendChild(img);
+        } else c.textContent = data[index];
+        updateProgress();
+      }
+
+      function next() { if (index < data.length - 1) { index++; renderCard(); renderList(); updateProgress(); } }
+      function prev() { if (index > 0) { index--; renderCard(); renderList(); updateProgress(); } }
+
+      function renderList() {
+        const p = document.getElementById("listPanel");
+        p.innerHTML = "";
+        if (data.length === 0) return;
+
+        data.forEach((_, i) => {
+          const d = document.createElement("div");
+          d.className = "list-item";
+          if (i === index) d.classList.add('active');
+
+          const content = document.createElement("div");
+          content.className = "list-item-content";
+
+          const indexDiv = document.createElement("div");
+          indexDiv.className = "list-item-index";
+          indexDiv.textContent = '#' + (i + 1);
+          content.appendChild(indexDiv);
+
+          if (labels[i]) {
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "list-item-label";
+            labelDiv.textContent = labels[i];
+            content.appendChild(labelDiv);
+          }
+
+          d.appendChild(content);
+          d.onclick = () => {
+            index = i;
+            renderCard();
+            renderList();
+            updateProgress();
+          };
+          p.appendChild(d);
+        });
+      }
+
+      function saveUploadData() {
+        applySelection();
+        // Collapse upload data section and expand categories section
+        toggleSection('uploadData');
+        document.getElementById('categoriesHeader').style.display = 'flex';
+        if (!sections.categories.expanded) {
+          toggleSection('categories');
+        }
+      }
+
+      function showColumnModal() {
+        const modal = document.getElementById('columnModal');
+        const options = document.getElementById('columnModalOptions');
+        const cols = Object.keys(rawRows[0] || {});
+
+        options.innerHTML = cols.map(col => '<label><input type="radio" name="modalColumn" value="' + col + '"><span>' + col + '</span></label>').join('');
+
+        modal.classList.remove('hidden');
+      }
+
+      function hideColumnModal() {
+        document.getElementById('columnModal').classList.add('hidden');
+      }
+
+      function confirmColumn() {
+        const selected = document.querySelector('input[name="modalColumn"]:checked');
+        if (selected) {
+          document.getElementById('columnSelect').value = selected.value;
+          hideColumnModal();
+          document.getElementById('uploadSaveSection').classList.add('visible');
+        }
+      }
+
+      function exportData() {
+        showExportOptions();
+      }
+
+      function showExportOptions() {
+        document.getElementById('exportModal').classList.remove('hidden');
+      }
+
+      function hideExportOptions() {
+        document.getElementById('exportModal').classList.add('hidden');
+      }
+
+      function showPrivacyModal() {
+        document.getElementById('privacyModal').classList.remove('hidden');
+      }
+
+      function hidePrivacyModal() {
+        document.getElementById('privacyModal').classList.add('hidden');
+      }
+
+      function toggleCsvEncoding() {
+        const format = document.querySelector('input[name="exportFormat"]:checked').value;
+        const csvEncoding = document.getElementById('csvEncodingOptions');
+        if (format === 'csv') {
+          csvEncoding.classList.remove('hidden');
+        } else {
+          csvEncoding.classList.add('hidden');
+        }
+      }
+
+      function performExport() {
+        const format = document.querySelector('input[name="exportFormat"]:checked').value;
+        const rows = data.map((d, i) => ({ index: i + 1, content: d, label: labels[i] || "" }));
+
+        if (format === 'excel') {
+          const ws = XLSX.utils.json_to_sheet(rows);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Labels");
+          XLSX.writeFile(wb, "labels.xlsx");
+        } else if (format === 'csv') {
+          const encoding = document.querySelector('input[name="csvEncoding"]:checked').value;
+          let csvContent = "index,content,label\n";
+          rows.forEach(row => {
+            csvContent += row.index + ',"' + row.content + '","' + row.label + '"\n';
+          });
+
+          const blob = new Blob([csvContent], {
+            type: encoding === 'gbk' ? 'text/csv;charset=gbk' : 'text/csv;charset=utf-8'
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'labels.csv';
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+
+        hideExportOptions();
+      }
+
+      /* File parsing */
+      document.getElementById("fileInput").onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.name.endsWith(".csv")) {
+          Papa.parse(f, { header: true, complete: r => loadTable(r.data) });
+        } else {
+          const r = new FileReader();
+          r.onload = () => {
+            const wb = XLSX.read(r.result, { type: "binary" });
+            loadTable(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+          };
+          r.readAsBinaryString(f);
+        }
+      };
+
+      function loadTable(rows) {
+        rawRows = rows;
+        const cols = Object.keys(rows[0] || {});
+        const sel = document.getElementById("columnSelect");
+        sel.innerHTML = cols.map(c => '<option>' + c + '</option>').join("");
+        document.getElementById("columnControls").classList.remove("hidden");
+        document.getElementById("totalRowsCount").textContent = rows.length;
+        sel.onchange = applySelection;
+
+        // Show column selection modal
+        showColumnModal();
+      }
+
+      function applySelection() {
+        const col = document.getElementById("columnSelect").value;
+        let start, end;
+
+        if (currentRowOption === 'count') {
+          start = +document.getElementById("rowStart").value - 1;
+          end = +document.getElementById("rowEnd").value;
+        } else if (currentRowOption === 'percent') {
+          const percentStart = +document.getElementById("rowPercentStart").value / 100;
+          const percentEnd = +document.getElementById("rowPercentEnd").value / 100;
+          const total = rawRows.length;
+          start = Math.floor(total * percentStart);
+          end = Math.floor(total * percentEnd);
+        } else if (currentRowOption === 'all') {
+          start = 0;
+          end = rawRows.length;
+        }
+
+        data = rawRows.slice(start, end).map(r => r[col]);
+        labels = new Array(data.length);
+        isImage = data.every(v => typeof v === "string" && v.match(/^https?:.*\.(jpg|png|jpeg|webp|gif)$/i));
+        index = 0;
+        renderCard();
+        renderList();
+        updateProgress();
+      }
+
+      document.getElementById("imageFolder").onchange = e => {
+        data = [...e.target.files].map(f => URL.createObjectURL(f));
+        isImage = true;
+        labels = new Array(data.length);
+        index = 0;
+        renderCard();
+        renderList();
+        updateProgress();
+      };
+    </script>
+</body>
+
+</html>
