@@ -1400,7 +1400,12 @@
       }
 
       function saveUploadData() {
-        applySelection();
+        // For image uploads, data is already loaded, don't apply selection
+        // For file uploads, apply selection to extract data
+        if (!isImage) {
+          applySelection();
+        }
+        
         // Collapse upload data section and expand categories section
         toggleSection('uploadData');
         document.getElementById('categoriesHeader').style.display = 'flex';
