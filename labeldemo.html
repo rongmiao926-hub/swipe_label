@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swipe Labeling Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    select, input, button {
+      padding: 8px;
+      margin: 8px 0;
+      width: 100%;
+      max-width: 400px;
+      font-size: 16px;
+    }
+
+    #card-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 300px;
+      margin: 24px auto;
+    }
+
+    #card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.2s ease;
+    }
+
+    #progress {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Swipe Labeling Demo</h1>
+  <p class="hint">Upload CSV → choose column → define labels → swipe</p>
+
+  <!-- STEP 1: Upload -->
+  <input type="file" id="csvFile" accept=".csv" />
+
+  <!-- STEP 2: Config -->
+  <div id="config" class="hidden">
+    <select id="textColumn"></select>
+    <input id="labelsInput" placeholder="Labels (comma separated)" />
+    <button id="startBtn">Start Labeling</button>
+  </div>
+
+  <!-- STEP 3: Swipe UI -->
+  <div id="labeling" class="hidden">
+    <div id="card-container">
+      <div id="card"></div>
+    </div>
+    <div id="progress"></div>
+    <p class="hint">Swipe directions are assigned in order</p>
+  </div>
+
+  <!-- STEP 4: Export -->
+  <div id="export" class="hidden">
+    <button id="downloadBtn">Download Labeled CSV</button>
+  </div>
+
+<script>
+  let rows = [];
+  let headers = [];
+  let textKey = "";
+  let labels = [];
+  let index = 0;
+  let results = [];
+
+  const fileInput = document.getElementById("csvFile");
+  const configDiv = document.getElementById("config");
+  const columnSelect = document.getElementById("textColumn");
+  const labelsInput = document.getElementById("labelsInput");
+  const startBtn = document.getElementById("startBtn");
+
+  const labelingDiv = document.getElementById("labeling");
+  const card = document.getElementById("card");
+  const progress = document.getElementById("progress");
+
+  const exportDiv = document.getElementById("export");
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  // --- CSV parsing (very simple) ---
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    const text = await file.text();
+    const lines = text.split("\n").filter(l => l.trim());
+    headers = lines[0].split(",");
+    rows = lines.slice(1).map(line => {
+      const values = line.split(",");
+      let obj = {};
+      headers.forEach((h, i) => obj[h] = values[i]);
+      return obj;
+    });
+
+    columnSelect.innerHTML = headers
+      .map(h => `<option value="${h}">${h}</option>`)
+      .join("");
+
+    configDiv.classList.remove("hidden");
+  });
+
+  // --- Start labeling ---
+  startBtn.addEventListener("click", () => {
+    textKey = columnSelect.value;
+    labels = labelsInput.value.split(",").map(l => l.trim()).filter(Boolean);
+
+    if (!labels.length) {
+      alert("Please enter at least one label.");
+      return;
+    }
+
+    index = 0;
+    results = [];
+
+    configDiv.classList.add("hidden");
+    labelingDiv.classList.remove("hidden");
+    showCard();
+  });
+
+  function showCard() {
+    if (index >= rows.length) {
+      labelingDiv.classList.add("hidden");
+      exportDiv.classList.remove("hidden");
+      return;
+    }
+
+    card.style.transform = "translate(0,0)";
+    card.textContent = rows[index][textKey];
+    progress.textContent = `Item ${index + 1} / ${rows.length}`;
+  }
+
+  // --- Swipe logic ---
+  let startX = 0;
+  let currentX = 0;
+  let dragging = false;
+
+  card.addEventListener("pointerdown", e => {
+    dragging = true;
+    startX = e.clientX;
+    card.setPointerCapture(e.pointerId);
+  });
+
+  card.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    currentX = e.clientX - startX;
+    card.style.transform = `translateX(${currentX}px) rotate(${currentX / 20}deg)`;
+  });
+
+  card.addEventListener("pointerup", () => {
+    dragging = false;
+
+    if (Math.abs(currentX) < 80) {
+      card.style.transform = "translate(0,0)";
+      return;
+    }
+
+    const labelIndex = currentX > 0 ? 0 : 1;
+    const label = labels[labelIndex] || labels[0];
+
+    results.push({
+      ...rows[index],
+      _label: label
+    });
+
+    index++;
+    currentX = 0;
+    showCard();
+  });
+
+  // --- Export CSV ---
+  downloadBtn.addEventListener("click", () => {
+    const outputHeaders = [...headers, "_label"];
+    const csv = [
+      outputHeaders.join(","),
+      ...results.map(r =>
+        outputHeaders.map(h => r[h] ?? "").join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "labeled_data.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
+</script>
+
+</body>
+</html>
