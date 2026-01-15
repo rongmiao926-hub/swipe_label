@@ -9,6 +9,9 @@ to address a very real problem:
 
 **Many people are still doing data labeling, but do not have access to automation.**
 
+
+<img width="2880" height="1382" alt="image" src="https://github.com/user-attachments/assets/9fccc67d-cc4c-4a21-8192-a347e9174e84" />
+
 ---
 
 ## Why LabelDeck?
@@ -31,6 +34,8 @@ LabelDeck aims to **reduce the additional burden** brought by this unavoidable r
 ---
 
 ## How does it work?
+
+<img width="2852" height="1506" alt="image" src="https://github.com/user-attachments/assets/136fa093-2def-4914-a33a-732b2dd694b2" />
 
 LabelDeck turns each item to be labeled (text, images, etc.) into a **card**, and:
 
