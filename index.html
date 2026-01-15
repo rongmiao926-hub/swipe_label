@@ -622,6 +622,37 @@
       color: #666;
       margin-top: 6px;
     }
+
+    .upload-progress {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8f9ff;
+      border-radius: 8px;
+      border: 1px solid #0071e3;
+    }
+
+    .upload-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e5e5ea;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .upload-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0071e3, #00a8ff);
+      border-radius: 4px;
+      transition: width 0.3s ease-out;
+      width: 0%;
+    }
+
+    .upload-progress-text {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
   </style>
 </head>
 
@@ -676,6 +707,13 @@
                 <div class="upload-description" data-i18n="uploadImageFolderDesc">Folder with images</div>
                 <input type="file" id="imageFolder" webkitdirectory multiple accept="image/*" style="display:none">
               </div>
+            </div>
+
+            <div id="uploadProgress" class="upload-progress hidden">
+              <div class="upload-progress-bar">
+                <div id="uploadProgressFill" class="upload-progress-fill"></div>
+              </div>
+              <div id="uploadProgressText" class="upload-progress-text">Uploading...</div>
             </div>
 
             <div id="columnControls" class="hidden">
@@ -856,7 +894,9 @@
           csvEncoding: "CSV Encoding:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "Cancel"
+          cancel: "Cancel",
+          placeholderCategory: "Category",
+          placeholderKey: "Key (e.g., P, ←, →)"
         },
         zh: {
           title: "LabelDeck",
@@ -894,7 +934,9 @@
           csvEncoding: "CSV编码:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "取消"
+          cancel: "取消",
+          placeholderCategory: "类别",
+          placeholderKey: "按键（如：P, ←, →）"
         },
         ja: {
           title: "LabelDeck",
@@ -931,14 +973,16 @@
           csvEncoding: "CSVエンコーディング:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "キャンセル"
+          cancel: "キャンセル",
+          placeholderCategory: "カテゴリー",
+          placeholderKey: "キー（例：P, ←, →）"
         },
         ko: {
           title: "LabelDeck",
           uploadData: "1. 데이터 업로드",
           headerSubtitle: "왼쪽 아이콘을 클릭하여 언어 변경。<br><br>왼쪽 목록을 클릭하여 특정 질문으로 이동합니다。<br><br>페이지를 닫으면 진행 상황이 손실되므로 결과를 적시에 내보내십시오.",
           privacyTerms: "개인정보 처리방침",
-          privacyContent: "<p><strong>LabelDeck은 데이터 라벨링을 위한 서버리스 도구입니다.</strong></p><p>모든 작업은 브라우저에서 로컬로 수행됩니다.</p><p>데이터는 서버에 업로드되지 않으며, 완전한 개인정보 보호가 보장됩니다.</p><p>파일과 라벨은 항상 장치에 남습니다. 이 도구는 데이터를 저장, 전송하거나 외부에서 액세스하지 않습니다.</p>",
+          privacyContent: "<p><strong>LabelDeck은 데이터 라벨링을 위한 서버리스 도구입니다。</strong></p><p>모든 작업은 브라우저에서 로컬로 수행됩니다。</p><p>데이터는 서버에 업로드되지 않으며, 완전한 개인정보 보호가 보장됩니다。</p><p>파일과 라벨은 항상 장치에 남습니다. 이 도구는 데이터를 저장, 전송하거나 외부에서 액세스하지 않습니다。</p>",
           viewHistory: "기록 보기",
           languageLabel: "언어",
           uploadFiles: "파일 업로드",
@@ -968,7 +1012,9 @@
           csvEncoding: "CSV 인코딩:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "취소"
+          cancel: "취소",
+          placeholderCategory: "카테고리",
+          placeholderKey: "키（예：P, ←, →）"
         },
         es: {
           title: "LabelDeck",
@@ -1005,7 +1051,9 @@
           csvEncoding: "Codificación CSV:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "Cancelar"
+          cancel: "Cancelar",
+          placeholderCategory: "Categoría",
+          placeholderKey: "Tecla (ej: P, ←, →)"
         },
         fr: {
           title: "LabelDeck",
@@ -1043,7 +1091,9 @@
           csvEncoding: "Encodage CSV:",
           utf8: "UTF-8",
           gbk: "GBK",
-          cancel: "Annuler"
+          cancel: "Annuler",
+          placeholderCategory: "Catégorie",
+          placeholderKey: "Touche (ex: P, ←, →)"
         }
       };
 
@@ -1078,6 +1128,25 @@
             }
           }
         });
+
+        // Update existing category row placeholders
+        const categoryContainer = document.getElementById("categoryContainer");
+        if (categoryContainer) {
+          const rows = categoryContainer.querySelectorAll(".category-row");
+          rows.forEach(row => {
+            const inputs = row.querySelectorAll("input");
+            if (inputs.length >= 2) {
+              // Update category placeholder (first input)
+              if (!inputs[0].value) {
+                inputs[0].placeholder = t.placeholderCategory;
+              }
+              // Update key placeholder (second input)
+              if (!inputs[1].value) {
+                inputs[1].placeholder = t.placeholderKey;
+              }
+            }
+          });
+        }
       }
 
       function toggleSidebar() {
@@ -1177,9 +1246,11 @@
 
       function addCategory(name = "", key = "") {
         if (locked) return;
+        const lang = document.getElementById("languageSelect").value;
+        const t = translations[lang];
         const row = document.createElement("div");
         row.className = "category-row";
-        row.innerHTML = '<input placeholder="Category" value="' + name + '"><input placeholder="Key" value="' + key + '" onkeydown="captureKey(event,this)"><button onclick="this.parentElement.remove()">✕</button>';
+        row.innerHTML = '<input placeholder="' + t.placeholderCategory + '" value="' + name + '"><input placeholder="' + t.placeholderKey + '" value="' + key + '" onkeydown="captureKey(event,this)"><button onclick="this.parentElement.remove()">✕</button>';
         document.getElementById("categoryContainer").appendChild(row);
       }
 
@@ -1478,14 +1549,51 @@
       }
 
       document.getElementById("imageFolder").onchange = e => {
-        data = [...e.target.files].map(f => URL.createObjectURL(f));
+        const files = e.target.files;
+        const totalFiles = files.length;
+        
+        // Show upload progress
+        const progressDiv = document.getElementById("uploadProgress");
+        const progressFill = document.getElementById("uploadProgressFill");
+        const progressText = document.getElementById("uploadProgressText");
+        progressDiv.classList.remove("hidden");
+        
+        // Process files with progress
+        let loaded = 0;
+        data = [];
+        
+        Array.from(files).forEach((file, i) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            data[i] = URL.createObjectURL(file);
+            loaded++;
+            const percent = ((loaded / totalFiles) * 100).toFixed(0);
+            progressFill.style.width = percent + "%";
+            progressText.textContent = loaded + " / " + totalFiles + " (" + percent + "%)";
+            
+            if (loaded === totalFiles) {
+              setTimeout(() => {
+                progressDiv.classList.add("hidden");
+                finishImageUpload();
+              }, 500);
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
+      function finishImageUpload() {
         isImage = true;
         labels = new Array(data.length);
         index = 0;
         renderCard();
         renderList();
         updateProgress();
-      };
+        
+        // Show categories section and save section
+        document.getElementById('categoriesHeader').style.display = 'flex';
+        document.getElementById('uploadSaveSection').classList.add('visible');
+      }
     </script>
 </body>
 
