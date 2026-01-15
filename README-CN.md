@@ -1,3 +1,5 @@
+🌐 Languages:
+[English](README.en.md) | [中文](README.md) 
 # LabelDeck 
 
 LabelDeck 是一个 **为仍然需要手动标注数据的人** 设计的轻量网页工具。 
