@@ -53,14 +53,15 @@
       font-size: 64px;
       font-weight: 700;
       color: #333;
-      margin-bottom: 8px;
+      margin-bottom: 32px;
       text-align: center;
     }
 
     .header-subtitle {
-      font-size: 20px;
+      font-size: 18px;
       color: #888;
       text-align: center;
+      line-height: 1.1;
     }
 
     main {
@@ -688,7 +689,7 @@
 
           <!-- Upload Data Section -->
           <div class="section-header" onclick="toggleSection('uploadData')">
-            <div class="section-title" data-i18n="uploadData">1. Upload Data</div>
+            <div class="section-title" data-i18n="uploadData">Upload Data</div>
             <div class="section-toggle collapsed" id="uploadDataToggle">▼</div>
           </div>
 
@@ -769,7 +770,7 @@
 
           <!-- Categories Section -->
           <div class="section-header" onclick="toggleSection('categories')" style="display: none;" id="categoriesHeader">
-            <div class="section-title" data-i18n="categories">2. Categories</div>
+            <div class="section-title" data-i18n="categories">Categories</div>
             <div class="section-toggle collapsed" id="categoriesToggle">▼</div>
           </div>
 
@@ -860,8 +861,8 @@
       const translations = {
         en: {
           title: "LabelDeck",
-          uploadData: "1. Upload Data",
-          headerSubtitle: "Click left icon to change language.<br><br>Click on the left list to jump to a specific question.<br><br>Closing the page will cause progress loss.<br><br>Please export results in time.",
+          uploadData: "Upload Data",
+          headerSubtitle: "Click left icon to change language.<br><br>Click on the left list to jump to a specific question.<br><br>Closing the page will cause progress loss.<br><br>Please export results in time.<br><br>Contact: rongmiao926@gmail.com",
           privacyTerms: "Privacy Terms",
           privacyContent: "<p><strong>LabelDeck is a serverless tool designed for data labeling.</strong></p><p>All operations are performed locally in your browser. No data is ever uploaded to any server, ensuring complete privacy and security.</p><p>Your files and labels remain on your device at all times. This tool does not store, transmit, or access any of your data externally.</p>",
           close: "Close",
@@ -880,11 +881,11 @@
           totalRows: "total rows",
           confirm: "Confirm",
           saveData: "Save Data",
-          categories: "2. Categories",
+          categories: "Categories",
           addCategory: "Add Category",
           saveLock: "Save & Lock",
           unlock: "Unlock",
-          labeling: "3. Labeling",
+          labeling: "Labeling",
           back: "Back",
           forward: "Forward",
           export: "Export",
@@ -896,12 +897,17 @@
           gbk: "GBK",
           cancel: "Cancel",
           placeholderCategory: "Category",
-          placeholderKey: "Key (e.g., P, ←, →)"
+          placeholderKey: "Key (e.g., P, ←, →)",
+          duplicateKeyError: "Duplicate key detected: ",
+          eachCategoryMustHaveUniqueKey: ". Each category must have a unique key.",
+          duplicateNameError: "Duplicate category name detected: ",
+          eachCategoryMustHaveUniqueName: ". Each category must have a unique name.",
+          atLeast2CategoriesRequired: "At least 2 categories are required for labeling. Please add more categories."
         },
         zh: {
           title: "LabelDeck",
-          uploadData: "1. 上传数据",
-          headerSubtitle: "点击左侧图标更改语言，或点击左侧列表跳转到指定题目。<br><br>关闭页面将导致进度丢失。<br><br>请及时导出标注结果。",
+          uploadData: "上传数据",
+          headerSubtitle: "点击左侧图标更改语言，或点击左侧列表跳转到指定题目。<br><br>关闭页面将导致进度丢失。<br><br>请及时导出标注结果。<br><br>联系邮箱：rongmiao926@gmail.com",
           privacyTerms: "隐私条款",
           privacyContent: "<p><strong>LabelDeck 是一个用于数据标注的无服务器工具。</strong></p><p>所有操作均在您的浏览器本地执行。不会上传任何数据到服务器，确保完全的隐私和安全。</p><p>您的文件和标注始终保存在您的设备上。此工具不会存储、传输或从外部访问您的任何数据。</p>",
           close: "关闭",
@@ -920,11 +926,11 @@
           totalRows: "总行数",
           confirm: "确认",
           saveData: "保存数据",
-          categories: "2. 类别",
+          categories: "类别",
           addCategory: "添加类别",
           saveLock: "保存并锁定",
           unlock: "解锁",
-          labeling: "3. 标注",
+          labeling: "标注",
           back: "上一个",
           forward: "下一个",
           export: "导出",
@@ -936,12 +942,17 @@
           gbk: "GBK",
           cancel: "取消",
           placeholderCategory: "类别",
-          placeholderKey: "按键（如：P, ←, →）"
+          placeholderKey: "按键（如：P, ←, →）",
+          duplicateKeyError: "检测到重复的按键：",
+          eachCategoryMustHaveUniqueKey: "。每个类别必须有唯一的按键。",
+          duplicateNameError: "检测到重复的类别名称：",
+          eachCategoryMustHaveUniqueName: "。每个类别必须有唯一的名称。",
+          atLeast2CategoriesRequired: "至少需要2个类别才能进行标注。请添加更多类别。"
         },
         ja: {
           title: "LabelDeck",
-          uploadData: "1. データをアップロード",
-          headerSubtitle: "左のアイコンをクリックして言語を変更。<br><br>左のリストをクリックして特定の質問にジャンプ。<br><br>ページを閉じると進行状況が失われますので、結果を適時エクスポートしてください。",
+          uploadData: "データをアップロード",
+          headerSubtitle: "左のアイコンをクリックして言語を変更。<br><br>左のリストをクリックして特定の質問にジャンプ。<br><br>ページを閉じると進行状況が失われますので、結果を適時エクスポートしてください。<br><br>お問い合わせ：rongmiao926@gmail.com",
           privacyTerms: "プライバシーポリシー",
           privacyContent: "<p><strong>LabelDeckは、データラベリング用のサーバーレスツールです。</strong></p><p>すべての操作はブラウザでローカルに実行されます。</p><p>データがサーバーにアップロードされることはなく、完全なプライバシーとセキュリティが保証されます。</p><p>ファイルとラベルは常にデバイス上に残ります。このツールは、データの保存、送信、または外部からのアクセスを行いません。</p>",
           viewHistory: "履歴を表示",
@@ -959,11 +970,11 @@
           totalRows: "総行数",
           confirm: "確認",
           saveData: "データを保存",
-          categories: "2. カテゴリー",
+          categories: "カテゴリー",
           addCategory: "カテゴリーを追加",
           saveLock: "保存してロック",
           unlock: "ロック解除",
-          labeling: "3. ラベリング",
+          labeling: "ラベリング",
           back: "戻る",
           forward: "進む",
           export: "エクスポート",
@@ -975,12 +986,17 @@
           gbk: "GBK",
           cancel: "キャンセル",
           placeholderCategory: "カテゴリー",
-          placeholderKey: "キー（例：P, ←, →）"
+          placeholderKey: "キー（例：P, ←, →）",
+          duplicateKeyError: "重複するキーが検出されました：",
+          eachCategoryMustHaveUniqueKey: "。各カテゴリーには一意のキーが必要です。",
+          duplicateNameError: "重複するカテゴリー名が検出されました：",
+          eachCategoryMustHaveUniqueName: "。各カテゴリーには一意の名前が必要です。",
+          atLeast2CategoriesRequired: "ラベリングには少なくとも2つのカテゴリーが必要です。さらにカテゴリーを追加してください。"
         },
         ko: {
           title: "LabelDeck",
-          uploadData: "1. 데이터 업로드",
-          headerSubtitle: "왼쪽 아이콘을 클릭하여 언어 변경。<br><br>왼쪽 목록을 클릭하여 특정 질문으로 이동합니다。<br><br>페이지를 닫으면 진행 상황이 손실되므로 결과를 적시에 내보내십시오.",
+          uploadData: "데이터 업로드",
+          headerSubtitle: "왼쪽 아이콘을 클릭하여 언어 변경。<br><br>왼쪽 목록을 클릭하여 특정 질문으로 이동합니다。<br><br>페이지를 닫으면 진행 상황이 손실되므로 결과를 적시에 내보내십시오.<br><br>문의：rongmiao926@gmail.com",
           privacyTerms: "개인정보 처리방침",
           privacyContent: "<p><strong>LabelDeck은 데이터 라벨링을 위한 서버리스 도구입니다。</strong></p><p>모든 작업은 브라우저에서 로컬로 수행됩니다。</p><p>데이터는 서버에 업로드되지 않으며, 완전한 개인정보 보호가 보장됩니다。</p><p>파일과 라벨은 항상 장치에 남습니다. 이 도구는 데이터를 저장, 전송하거나 외부에서 액세스하지 않습니다。</p>",
           viewHistory: "기록 보기",
@@ -998,11 +1014,11 @@
           totalRows: "총 행",
           confirm: "확인",
           saveData: "데이터 저장",
-          categories: "2. 카테고리",
+          categories: "카테고리",
           addCategory: "카테고리 추가",
           saveLock: "저장 및 잠금",
           unlock: "잠금 해제",
-          labeling: "3. 라벨링",
+          labeling: "라벨링",
           back: "뒤로",
           forward: "앞으로",
           export: "내보내기",
@@ -1014,14 +1030,19 @@
           gbk: "GBK",
           cancel: "취소",
           placeholderCategory: "카테고리",
-          placeholderKey: "키（예：P, ←, →）"
+          placeholderKey: "키（예：P, ←, →）",
+          duplicateKeyError: "중복된 키가 감지되었습니다：",
+          eachCategoryMustHaveUniqueKey: "。각 카테고리는 고유한 키를 가져야 합니다.",
+          duplicateNameError: "중복된 카테고리 이름이 감지되었습니다：",
+          eachCategoryMustHaveUniqueName: "。각 카테고리는 고유한 이름을 가져야 합니다.",
+          atLeast2CategoriesRequired: "라벨링에는 최소 2개의 카테고리가 필요합니다. 더 많은 카테고리를 추가하세요."
         },
         es: {
           title: "LabelDeck",
-          uploadData: "1. Subir Datos",
-          headerSubtitle: "Haga clic en el icono izquierdo para cambiar idioma.<br><br>Haga clic en la lista izquierda para saltar a una pregunta específica.<br><br>Cerrar la página provocará la pérdida del progreso.<br><br>Por favor exporte los resultados a tiempo.",
+          uploadData: "Subir Datos",
+          headerSubtitle: "Haga clic en el icono izquierdo para cambiar idioma.<br><br>Haga clic en la lista izquierda para saltar a una pregunta específica.<br><br>Cerrar la página provocará la pérdida del progreso.<br><br>Por favor exporte los resultados a tiempo.<br><br>Contacto：rongmiao926@gmail.com",
           privacyTerms: "Términos de Privacidad",
-          privacyContent: "<p><strong>LabelDeck es una herramienta sin servidor diseñada para el etiquetado de datos.</strong></p><p>Todas las operaciones se realizan localmente en su navegador.</p><p>Ningún dato se sube a ningún servidor, garantizando una privacidad y seguridad completas.</p><p>Sus archivos y etiquetas permanecen en su dispositivo en todo momento. Esta herramienta no almacena, transmite ni accede a sus datos externamente.</p>",
+          privacyContent: "<p><strong>LabelDeck es una herramienta sin servidor diseñada para el etiquetado de datos。</strong></p><p>Todas las operaciones se realizan localmente en su navegador。</p><p>Ningún dato se sube a ningún servidor, garantizando una privacidad y seguridad completas。</p><p>Sus archivos y etiquetas permanecen en su dispositivo en todo momento. Esta herramienta no almacena, transmite ni accede a sus datos externamente。</p>",
           viewHistory: "Ver Historial",
           languageLabel: "Idioma",
           uploadFiles: "subir archivos",
@@ -1037,11 +1058,11 @@
           totalRows: "filas totales",
           confirm: "Confirmar",
           saveData: "Guardar Datos",
-          categories: "2. Categorías",
+          categories: "Categorías",
           addCategory: "Añadir Categoría",
           saveLock: "Guardar y Bloquear",
           unlock: "Desbloquear",
-          labeling: "3. Etiquetado",
+          labeling: "Etiquetado",
           back: "Atrás",
           forward: "Adelante",
           export: "Exportar",
@@ -1053,14 +1074,19 @@
           gbk: "GBK",
           cancel: "Cancelar",
           placeholderCategory: "Categoría",
-          placeholderKey: "Tecla (ej: P, ←, →)"
+          placeholderKey: "Tecla (ej: P, ←, →)",
+          duplicateKeyError: "Se detectó una tecla duplicada：",
+          eachCategoryMustHaveUniqueKey: "。Cada categoría debe tener una tecla única.",
+          duplicateNameError: "Se detectó un nombre de categoría duplicado：",
+          eachCategoryMustHaveUniqueName: "。Cada categoría debe tener un nombre único.",
+          atLeast2CategoriesRequired: "Se requieren al menos 2 categorías para etiquetado. Por favor agregue más categorías."
         },
         fr: {
           title: "LabelDeck",
-          uploadData: "1. Télécharger des données",
-          headerSubtitle: "Cliquez sur l'icône de gauche pour changer la langue.<br><br>Cliquez sur la liste de gauche pour aller à une question spécifique.<br><br>Fermer la page entraînera la perte de la progression.<br><br>Veuillez exporter les résultats à temps.",
+          uploadData: "Télécharger des données",
+          headerSubtitle: "Cliquez sur l'icône de gauche pour changer la langue.<br><br>Cliquez sur la liste de gauche pour aller à une question spécifique.<br><br>Fermer la page entraînera la perte de la progression.<br><br>Veuillez exporter les résultats à temps.<br><br>Contact：rongmiao926@gmail.com",
           privacyTerms: "Politique de Confidentialité",
-          privacyContent: "<p><strong>LabelDeck est un outil sans serveur conçu pour l'étiquetage de données.</strong></p><p>Toutes les opérations sont effectuées localement dans votre navigateur.</p><p>Aucune donnée n'est téléchargée vers un serveur, garantissant une confidentialité et une sécurité complètes.</p><p>Vos fichiers et étiquettes restent sur votre appareil à tout moment. Cet outil ne stocke, ne transmet ni n'accède à vos données de l'extérieur.</p>",
+          privacyContent: "<p><strong>LabelDeck est un outil sans serveur conçu pour l'étiquetage de données。</strong></p><p>Toutes les opérations sont effectuées localement dans votre navigateur。</p><p>Aucune donnée n'est téléchargée vers un serveur, garantissant une confidentialité et une sécurité complètes。</p><p>Vos fichiers et étiquettes restent sur votre appareil à tout moment. Cet outil ne stocke, ne transmet ni n'accède à vos données de l'extérieur。</p>",
           close: "Fermer",
           viewHistory: "Voir l'historique",
           languageLabel: "Langue",
@@ -1077,11 +1103,11 @@
           totalRows: "lignes au total",
           confirm: "Confirmer",
           saveData: "Enregistrer les données",
-          categories: "2. Catégories",
+          categories: "Catégories",
           addCategory: "Ajouter une catégorie",
           saveLock: "Enregistrer et verrouiller",
           unlock: "Déverrouiller",
-          labeling: "3. Étiquetage",
+          labeling: "Étiquetage",
           back: "Précédent",
           forward: "Suivant",
           export: "Exporter",
@@ -1093,7 +1119,12 @@
           gbk: "GBK",
           cancel: "Annuler",
           placeholderCategory: "Catégorie",
-          placeholderKey: "Touche (ex: P, ←, →)"
+          placeholderKey: "Touche (ex: P, ←, →)",
+          duplicateKeyError: "Touche en double détectée：",
+          eachCategoryMustHaveUniqueKey: "。Chaque catégorie doit avoir une touche unique.",
+          duplicateNameError: "Nom de catégorie en double détecté：",
+          eachCategoryMustHaveUniqueName: "。Chaque catégorie doit avoir un nom unique.",
+          atLeast2CategoriesRequired: "Au moins 2 catégories sont requises pour l'étiquetage. Veuillez ajouter plus de catégories."
         }
       };
 
@@ -1103,6 +1134,7 @@
       let currentUploadType = null;
       let hintVisible = false;
       let currentRowOption = 'count';
+      let fileNames = []; // Store original file names for images
       let sections = {
         uploadData: { expanded: true },
         categories: { expanded: true }
@@ -1260,13 +1292,49 @@
       }
 
       function saveCategories() {
+        const lang = document.getElementById("languageSelect").value;
+        const t = translations[lang];
+        
         categories = {};
+        const keys = [];
+        const names = [];
+        let validationFailed = false;
+        
         document.querySelectorAll(".category-row").forEach(r => {
           const c = r.children[0].value;
           const k = r.children[1].value;
-          if (c && k) categories[k] = c;
+          if (c && k) {
+            // Check for duplicate keys
+            if (keys.includes(k)) {
+              alert(t.duplicateKeyError + "'" + k + "'" + t.eachCategoryMustHaveUniqueKey);
+              validationFailed = true;
+              return; // Stop processing this row
+            }
+            // Check for duplicate category names
+            if (names.includes(c)) {
+              alert(t.duplicateNameError + "'" + c + "'" + t.eachCategoryMustHaveUniqueName);
+              validationFailed = true;
+              return; // Stop processing this row
+            }
+            keys.push(k);
+            names.push(c);
+            categories[k] = c;
+          }
         });
-        if (!Object.keys(categories).length) { alert("Add categories"); return; }
+        
+        // If validation failed, don't continue
+        if (validationFailed) {
+          return;
+        }
+        
+        const categoryCount = Object.keys(categories).length;
+        
+        // Check if there are at least 2 categories
+        if (categoryCount < 2) {
+          alert(t.atLeast2CategoriesRequired);
+          return; // Return without locking
+        }
+        
         locked = true;
         document.getElementById("labeling").classList.remove("hidden");
         showLegend();
@@ -1469,7 +1537,12 @@
 
       function performExport() {
         const format = document.querySelector('input[name="exportFormat"]:checked').value;
-        const rows = data.map((d, i) => ({ index: i + 1, content: d, label: labels[i] || "" }));
+        // For images, use original file names instead of blob URLs
+        const rows = data.map((d, i) => ({
+          index: i + 1,
+          content: isImage ? fileNames[i] : d, // Use original file name for images
+          label: labels[i] || ""
+        }));
 
         if (format === 'excel') {
           const ws = XLSX.utils.json_to_sheet(rows);
@@ -1566,11 +1639,13 @@
         // Process files with progress
         let loaded = 0;
         data = [];
+        fileNames = []; // Reset file names array
         
         Array.from(files).forEach((file, i) => {
           const reader = new FileReader();
           reader.onload = () => {
             data[i] = URL.createObjectURL(file);
+            fileNames[i] = file.name; // Store original file name
             loaded++;
             const percent = ((loaded / totalFiles) * 100).toFixed(0);
             progressFill.style.width = percent + "%";
